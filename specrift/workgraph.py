@@ -26,7 +26,11 @@ class Workgraph:
     ) -> None:
         # If it already exists, do nothing (idempotent).
         try:
-            subprocess.check_output(["wg", "--dir", str(self.wg_dir), "show", task_id, "--json"], text=True)
+            subprocess.check_output(
+                ["wg", "--dir", str(self.wg_dir), "show", task_id, "--json"],
+                text=True,
+                stderr=subprocess.DEVNULL,
+            )
             return
         except Exception:
             pass
@@ -67,4 +71,3 @@ def find_workgraph_dir(explicit: Path | None) -> Path:
         if candidate.exists():
             return candidate.parent
     raise FileNotFoundError("Could not find .workgraph/graph.jsonl; pass --dir.")
-
