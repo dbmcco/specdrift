@@ -1,6 +1,14 @@
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 .mypy_cache/
 .venv/
 .DS_Store
+
+# Local workgraph (dogfood)
+.workgraph/
+
+# Packaging
+dist/
+build/
+*.egg-info/

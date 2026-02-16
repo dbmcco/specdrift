@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from specrift.git_tools import WorkingChanges
-from specrift.globmatch import match_any
-from specrift.specs import SpecriftSpec
+from specdrift.git_tools import WorkingChanges
+from specdrift.globmatch import match_any
+from specdrift.specs import SpecdriftSpec
 
 
 @dataclass(frozen=True)
@@ -21,7 +21,7 @@ def compute_spec_drift(
     task_id: str,
     task_title: str,
     description: str,
-    spec: SpecriftSpec,
+    spec: SpecdriftSpec,
     git_root: str | None,
     changes: WorkingChanges | None,
 ) -> dict[str, Any]:
@@ -44,7 +44,7 @@ def compute_spec_drift(
             Finding(
                 kind="unsupported_schema",
                 severity="warn",
-                summary=f"Unsupported specrift schema: {spec.schema} (expected 1)",
+                summary=f"Unsupported specdrift schema: {spec.schema} (expected 1)",
             )
         )
 
@@ -53,7 +53,7 @@ def compute_spec_drift(
             Finding(
                 kind="invalid_spec_config",
                 severity="warn",
-                summary="specrift spec[] is empty; nothing to keep in sync",
+                summary="specdrift spec[] is empty; nothing to keep in sync",
             )
         )
 
@@ -87,7 +87,7 @@ def compute_spec_drift(
             recommendations.append(
                 {
                     "priority": "high",
-                    "action": "Update spec/docs for this task (or adjust specrift spec globs)",
+                    "action": "Update spec/docs for this task (or adjust specdrift spec globs)",
                     "rationale": "Spec drift is the fastest way to lose intent; keeping docs updated prevents hidden scope/perf regressions later.",
                 }
             )
@@ -95,15 +95,15 @@ def compute_spec_drift(
             recommendations.append(
                 {
                     "priority": "high",
-                    "action": "Populate specrift spec[] with the docs/specs that should be updated for this task",
-                    "rationale": "Specrift needs an explicit set of spec/doc paths to keep in sync.",
+                    "action": "Populate specdrift spec[] with the docs/specs that should be updated for this task",
+                    "rationale": "Specdrift needs an explicit set of spec/doc paths to keep in sync.",
                 }
             )
         elif f.kind == "unsupported_schema":
             recommendations.append(
                 {
                     "priority": "high",
-                    "action": "Set specrift schema = 1",
+                    "action": "Set specdrift schema = 1",
                     "rationale": "Only schema v1 is currently supported.",
                 }
             )
@@ -122,4 +122,3 @@ def compute_spec_drift(
         "findings": [asdict(f) for f in findings],
         "recommendations": recommendations,
     }
-

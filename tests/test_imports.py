@@ -3,7 +3,7 @@ import unittest
 
 class TestImports(unittest.TestCase):
     def test_imports(self) -> None:
-        import specrift.cli  # noqa: F401
+        import specdrift.cli  # noqa: F401
 
 
 if __name__ == "__main__":

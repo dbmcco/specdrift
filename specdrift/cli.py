@@ -7,11 +7,11 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
-from specrift.contracts import format_default_contract_block
-from specrift.drift import compute_spec_drift
-from specrift.git_tools import get_git_root, get_working_changes
-from specrift.specs import SpecriftSpec, extract_specrift_spec, parse_specrift_spec
-from specrift.workgraph import Workgraph, find_workgraph_dir
+from specdrift.contracts import format_default_contract_block
+from specdrift.drift import compute_spec_drift
+from specdrift.git_tools import get_git_root, get_working_changes
+from specdrift.specs import SpecdriftSpec, extract_specdrift_spec, parse_specdrift_spec
+from specdrift.workgraph import Workgraph, find_workgraph_dir
 
 
 class ExitCode:
@@ -43,7 +43,7 @@ def _emit_text(report: dict) -> None:
 
 def _write_state(*, wg_dir: Path, report: dict) -> None:
     try:
-        out_dir = wg_dir / ".specrift"
+        out_dir = wg_dir / ".specdrift"
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / "last.json").write_text(json.dumps(report, indent=2, sort_keys=False) + "\n", encoding="utf-8")
     except Exception:
@@ -57,10 +57,10 @@ def _maybe_write_log(wg: Workgraph, task_id: str, report: dict) -> None:
     recs = report.get("recommendations") or []
 
     if not findings:
-        msg = "Specrift: OK (no findings)"
+        msg = "Specdrift: OK (no findings)"
     else:
         kinds = ", ".join(sorted({str(f.get("kind")) for f in findings}))
-        msg = f"Specrift: {score} ({kinds})"
+        msg = f"Specdrift: {score} ({kinds})"
         if recs:
             next_action = str(recs[0].get("action") or "").strip()
             if next_action:
@@ -73,7 +73,7 @@ def _maybe_create_followups(wg: Workgraph, report: dict) -> None:
     task_id = str(report["task_id"])
     task_title = str(report.get("task_title") or task_id)
     spec_raw = report.get("spec") or {}
-    spec = SpecriftSpec.from_raw(spec_raw)
+    spec = SpecdriftSpec.from_raw(spec_raw)
 
     findings = report.get("findings") or []
     if not findings:
@@ -94,7 +94,7 @@ def _maybe_create_followups(wg: Workgraph, report: dict) -> None:
             f"- Finding: {f.get('summary')}\n\n"
             + format_default_contract_block(mode="core", objective=title, touch=spec.spec)
             + "\n"
-            + (report.get("_specrift_block") or "").strip()
+            + (report.get("_specdrift_block") or "").strip()
             + "\n"
         )
         wg.ensure_task(
@@ -127,7 +127,7 @@ def cmd_wg_check(args: argparse.Namespace) -> int:
     title = str(task.get("title") or task_id)
     description = str(task.get("description") or "")
 
-    raw_block = extract_specrift_spec(description)
+    raw_block = extract_specdrift_spec(description)
     if raw_block is None:
         report = {
             "task_id": task_id,
@@ -135,7 +135,7 @@ def cmd_wg_check(args: argparse.Namespace) -> int:
             "git_root": None,
             "score": "green",
             "spec": None,
-            "telemetry": {"note": "no specrift block"},
+            "telemetry": {"note": "no specdrift block"},
             "findings": [],
             "recommendations": [],
         }
@@ -146,8 +146,8 @@ def cmd_wg_check(args: argparse.Namespace) -> int:
         return ExitCode.ok
 
     try:
-        spec_raw = parse_specrift_spec(raw_block)
-        spec = SpecriftSpec.from_raw(spec_raw)
+        spec_raw = parse_specdrift_spec(raw_block)
+        spec = SpecdriftSpec.from_raw(spec_raw)
     except Exception as e:
         report = {
             "task_id": task_id,
@@ -158,20 +158,20 @@ def cmd_wg_check(args: argparse.Namespace) -> int:
             "telemetry": {"parse_error": str(e)},
             "findings": [
                 {
-                    "kind": "invalid_specrift_spec",
+                    "kind": "invalid_specdrift_spec",
                     "severity": "warn",
-                    "summary": "specrift block present but could not be parsed",
+                    "summary": "specdrift block present but could not be parsed",
                 }
             ],
             "recommendations": [
                 {
                     "priority": "high",
-                    "action": "Fix the specrift TOML block so it parses",
-                    "rationale": "Specrift can only advise on spec drift when it can read the spec configuration.",
+                    "action": "Fix the specdrift TOML block so it parses",
+                    "rationale": "Specdrift can only advise on spec drift when it can read the spec configuration.",
                 }
             ],
         }
-        report["_specrift_block"] = f"```specrift\n{raw_block}\n```"
+        report["_specdrift_block"] = f"```specdrift\n{raw_block}\n```"
         _write_state(wg_dir=wg_dir, report=report)
         if args.write_log:
             _maybe_write_log(wg, task_id, report)
@@ -192,7 +192,7 @@ def cmd_wg_check(args: argparse.Namespace) -> int:
         git_root=git_root,
         changes=changes,
     )
-    report["_specrift_block"] = f"```specrift\n{raw_block}\n```"
+    report["_specdrift_block"] = f"```specdrift\n{raw_block}\n```"
 
     _write_state(wg_dir=wg_dir, report=report)
 
@@ -210,7 +210,7 @@ def cmd_wg_check(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="specrift")
+    p = argparse.ArgumentParser(prog="specdrift")
     p.add_argument("--dir", help="Project directory (or .workgraph dir). Defaults to cwd search.")
     p.add_argument("--json", action="store_true", help="JSON output (where supported)")
 
@@ -219,7 +219,7 @@ def main(argv: list[str] | None = None) -> int:
     wg = sub.add_parser("wg", help="Workgraph-integrated commands")
     wg_sub = wg.add_subparsers(dest="wg_cmd", required=True)
 
-    check = wg_sub.add_parser("check", help="Check for spec drift (requires a specrift block in the task)")
+    check = wg_sub.add_parser("check", help="Check for spec drift (requires a specdrift block in the task)")
     check.add_argument("--task", help="Task id to check")
     check.add_argument("--write-log", action="store_true", help="Write summary into wg log")
     check.add_argument("--create-followups", action="store_true", help="Create follow-up tasks for findings")
@@ -231,4 +231,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
