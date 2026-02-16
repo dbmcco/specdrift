@@ -10,7 +10,7 @@ This project is part of the Speedrift suite for Workgraph-first drift control.
 
 - Spine: [Workgraph](https://graphwork.github.io/)
 - Orchestrator: [driftdriver](https://github.com/dbmcco/driftdriver)
-- Baseline lane: [speedrift](https://github.com/dbmcco/speedrift)
+- Baseline lane: [coredrift](https://github.com/dbmcco/coredrift)
 - Optional lanes: [specdrift](https://github.com/dbmcco/specdrift), [datadrift](https://github.com/dbmcco/datadrift), [depsdrift](https://github.com/dbmcco/depsdrift), [uxdrift](https://github.com/dbmcco/uxdrift), [therapydrift](https://github.com/dbmcco/therapydrift), [yagnidrift](https://github.com/dbmcco/yagnidrift), [redrift](https://github.com/dbmcco/redrift)
 
 ## Task Spec Format
