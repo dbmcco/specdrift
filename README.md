@@ -46,6 +46,16 @@ Standalone (from a repo root):
 /path/to/specdrift/bin/specdrift --dir . wg check --task <id> --write-log --create-followups
 ```
 
+## Speedrift Agent Control
+
+When `specdrift` is installed into a repo through Speedrift:
+
+- Workgraph remains the task source of truth.
+- `speedriftd` owns repo-local runtime supervision.
+- Default repo posture is `observe`; agent sessions should refresh/report state before asking the repo to continue background work.
+- Use the repo lifecycle hooks and explicit mode changes rather than treating `wg service start` as the generic startup path.
+- The shared agent docs written by `driftdriver install --all-clis` explain the exact `session-start`, `task-claimed`, `task-completing`, and `speedriftd status --set-mode ...` commands.
+
 Exit codes:
 - `0`: clean
 - `3`: findings exist (advisory)
