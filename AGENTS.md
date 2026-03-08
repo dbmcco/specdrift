@@ -1,35 +1,54 @@
 <!-- driftdriver-codex:start -->
-## Driftdriver Integration Protocol
+## Speedrift Ecosystem
 
-When working on tasks in this project, follow this protocol:
+**Speedrift** is the development quality system across this workspace. It combines
+[Workgraph](https://github.com/graphwork/workgraph) (task spine) with
+[Driftdriver](https://github.com/dbmcco/driftdriver) (drift orchestrator) to keep
+code, specs, and intent in sync without hard-blocking work.
 
-### At Session Start
-Run: `./.workgraph/handlers/session-start.sh --cli codex`
+### Quick Reference
 
-### When Claiming a Task
-Run: `./.workgraph/handlers/task-claimed.sh --cli codex`
+```bash
+# Drift-check a task (run at start + before completion)
+./.workgraph/drifts check --task <id> --write-log --create-followups
 
-### Before Completing a Task
-Run: `./.workgraph/handlers/task-completing.sh --cli codex`
+# Ecosystem dashboard
+# Local:     http://127.0.0.1:8777/
+# Tailscale: http://100.77.214.44:8777/
 
-### On Error
-Run: `./.workgraph/handlers/agent-error.sh --cli codex`
+# Create tasks with current wg flags
+wg add "Title" --after <dep-id> --immediate --verify "test command"
 
-### Drift Protocol
-- Pre-check: `./.workgraph/drifts check --task <TASK_ID> --write-log`
-- Post-check: `./.workgraph/drifts check --task <TASK_ID> --write-log --create-followups`
+# Attractor loop — check convergence status or run convergence
+driftdriver attractor status --json
+driftdriver attractor run --json
+```
 
-## Speedrift Ecosystem Protocol
+### Lifecycle Hooks
+- Session start: `./.workgraph/handlers/session-start.sh --cli codex`
+- Task claimed: `./.workgraph/handlers/task-claimed.sh --cli codex`
+- Before completion: `./.workgraph/handlers/task-completing.sh --cli codex`
+- On error: `./.workgraph/handlers/agent-error.sh --cli codex`
 
-- Workgraph is the source of truth for tasks and dependencies.
-- `speedriftd` is the repo-local runtime supervisor. Interactive sessions do not own dispatch by default.
-- Default posture is `observe`. Do not use `wg service start` as a generic way to kick off autonomous work.
-- Refresh repo runtime state before acting: `driftdriver --dir "$PWD" --json speedriftd status --refresh`
-- If the user wants background execution in this repo, arm it explicitly:
-  - `driftdriver --dir "$PWD" speedriftd status --set-mode supervise --lease-owner <agent-name> --reason "explicit repo supervision requested"`
-  - `driftdriver --dir "$PWD" speedriftd status --set-mode autonomous --lease-owner <agent-name> --reason "explicit autonomous execution requested"`
-- When the task is complete or the repo should stop self-dispatching, return it to passive mode:
-  - `driftdriver --dir "$PWD" speedriftd status --set-mode observe --release-lease --reason "return repo to observation"`
-- To see the broader ecosystem hub and current port 8777 URLs:
-  - `cd /Users/braydon/projects/experiments/driftdriver && scripts/ecosystem_hub_daemon.sh url`
+### Runtime Authority
+- Workgraph is the task/dependency source of truth. `speedriftd` is the repo-local supervisor.
+- Sessions default to `observe`. Do not use `wg service start` as a generic kickoff.
+- Refresh state: `driftdriver --dir "$PWD" --json speedriftd status --refresh`
+- Arm repo: `driftdriver --dir "$PWD" speedriftd status --set-mode supervise --lease-owner <agent> --reason "reason"`
+- Disarm: `driftdriver --dir "$PWD" speedriftd status --set-mode observe --release-lease --reason "done"`
+
+### Attractor Loop (Convergence Engine)
+- Each repo declares a target attractor in `drift-policy.toml`: `onboarded` → `production-ready` → `hardened`
+- The loop runs diagnose → plan → execute → re-diagnose until convergence or circuit breaker
+- Circuit breakers: max 3 passes, plateau detection, task budget cap (30)
+- Bundles (reusable fix templates) are matched to findings automatically; unmatched findings escalate
+- Check status: `driftdriver attractor status --json`
+- Run convergence: `driftdriver attractor run --json`
+
+### What Happens Automatically
+- **Drift task guard**: follow-up tasks are deduped + capped at 3 per lane per repo
+- **Attractor convergence**: repos are driven toward their declared target state via the attractor loop
+- **Notifications**: significant findings alert via terminal/webhook/wg-notify
+- **Prompt evolution**: recurring drift patterns trigger `wg evolve` to teach agents
+- **Outcome learning**: resolution rates feed back into notification significance scoring
 <!-- driftdriver-codex:end -->
