@@ -4,6 +4,10 @@
 
 It is designed to be run under Workgraph tasks via the `driftdriver`/`drifts` unified check.
 
+## North Star
+
+**North Star**: specdrift reliably identifies when spec/doc files have drifted from code changes, enabling Workgraph agents to receive actionable, low-noise advisory findings that keep documentation honest without blocking delivery.
+
 ## Ecosystem Map
 
 This project is part of the Speedrift suite for Workgraph-first drift control.
